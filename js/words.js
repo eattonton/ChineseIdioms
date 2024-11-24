@@ -30,6 +30,8 @@ function CreateA4(category) {
         m_drawBoard.WriteText("小学成语", 7.5, 2.0, 1.0);
     } else if (m_category == 3) {
         m_drawBoard.WriteText("成语消消乐", 7.5, 2.0, 1.0);
+    } else if (m_category == 4) {
+        m_drawBoard.WriteText("古诗迷宫", 7.5, 2.0, 1.0);
     }
     //2.sub-title
     if (datas[m_category]) {
@@ -43,6 +45,8 @@ function CreateA4(category) {
             urlData = "./data/idioms.json";
         } else if (m_category == 3) {
             urlData = "./data/xiaoxue.txt";
+        }else if (m_category == 4) {
+            urlData = "./data/poem.json";
         }
         if (urlData) {
             LoadDictionary(urlData, (arr1) => {
@@ -73,9 +77,15 @@ function CreateWordA4() {
         m_drawBoard.WriteTextsH(["班级________", "姓名________", "用时________", "得分________"], 2.5, 4.5, 0.5);
         DrawWordsByRow(datas[m_category]);
     } else if (m_category == 3) {
+        //成语消消乐
         m_BlockCellWidth = 1.4;
         CreateOneBox(4.5, 4);
         CreateOneBox(4.5, 17.5);
+    } else if(m_category == 4){
+        m_BlockCellWidth = 1.1;
+        //古诗迷宫
+        CreateOneMaze(4.5, 4.2);
+        CreateOneMaze(4.5, 17.5);
     }
     loadImg0();
 }
@@ -181,6 +191,70 @@ function DrawBlocks(x0, y0, chess1) {
     }
 }
  
+//古诗迷宫
+function CreateOneMaze(x,y){
+    let chessSize = 10;
+    //生成棋盘
+    let chess1 = new chessBoard(chessSize,chessSize);
+    //获得古诗
+    let wordIndex0 = CArrayHelper.RandomInt(0, datas[m_category].length-1);
+    let poem = datas[m_category][wordIndex0];
+    let words = poem["c"].replace(/，|。|？|！/g,"");
+    console.log(poem);
+    //生成一个路径
+    let path1 = new CPath2d(chessSize,chessSize);
+    let pathArr = [];
+    do{
+        if(path1.CreateOrthPath(words.length)){
+            pathArr = path1.Paths;
+            break;
+        }
+    }while(true);
+    //绘制标题
+    m_drawBoard.WriteText("《"+poem["t"]+"》", x, y-0.6, 0.7);
+    let x1 = x;
+    let y1 = y;
+    for (let j = 0; j < chess1.numRow; j++) {
+        for (let i = 0; i < chess1.numCol; i++) {
+            //绘制方格
+            m_drawBoard.DrawSquare(x1, y1, m_BlockCellWidth);
+            //绘制文字
+            let idx = j*chess1.numCol+i;
+            let charVal = "";
+            if(pathArr.indexOf(idx) >= 0){
+                let charIdx = pathArr.indexOf(idx);
+                if(charIdx ==0 || charIdx == (pathArr.length-1)){
+                    //绘制一个圆，表示起点，终点
+                    m_drawBoard.DrawCircle(x1 + 0.5 * m_BlockCellWidth, y1 + 0.5 * m_BlockCellWidth, m_BlockCellWidth*0.5);
+                }
+                charVal = words[words.length - charIdx - 1];
+            }else{
+                //填充其它文字
+                charVal = GetOtherWord(wordIndex0);
+            }
+            m_drawBoard.WriteText(charVal, x1 + 0.2 * m_BlockCellWidth, y1 + 0.7 * m_BlockCellWidth, 0.62);
+            x1 = x1 + m_BlockCellWidth;
+        }
+        y1 = y1 + m_BlockCellWidth;
+        x1 = x;
+    }
+}
+
+function GetOtherWord(wordIndex){
+    do{
+        let idx2 = CArrayHelper.RandomInt(0, datas[m_category].length-1);
+        if(idx2 != wordIndex){
+            let words =  datas[m_category][idx2]["c"];
+            let idx3 = CArrayHelper.RandomInt(0, words.length-1);
+            let cc = words[idx3];
+            if(cc == "，" || cc == "。" || cc == "？" || cc == "！"){
+                continue;
+            }
+            return cc;
+        }
+    }while(true);
+}
+
 //加载字典
 function LoadDictionary(url, cb) {
     if (url.endsWith(".txt")) {

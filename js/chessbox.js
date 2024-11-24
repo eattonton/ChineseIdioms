@@ -259,9 +259,9 @@ class partFactory {
     }
 }
 class chessBoard {
-    constructor() {
-        this.numRow = 8;
-        this.numCol = 8;
+    constructor(col, row) {
+        this.numRow = row || 8;
+        this.numCol = col || 8;
         //二维数组
         this.boxs = new Array();
     }
